@@ -1,0 +1,21 @@
+<h1><a href="/">MyMusic</a></h1><br>
+
+{{#if userName}}
+<h3><a href="/lk">Личный кабинет</a></h3><br>
+<h3><a href="/logout">Выход</a></h3><br>
+{{else}}
+<h3><a href="/login">Вход</a></h3><br>
+{{/if}}
+
+<form action="/" method="post">
+  <input id="artist" type="text" name="artist">
+  <input id="find" type="submit" value="Найти">
+</form><br>
+
+<ul>
+  {{#each artists}}
+  <li>{{this}}</li>
+  {{/each}}
+</ul>
+
+{{!-- <script src="/javascripts/main.js"></script> --}}

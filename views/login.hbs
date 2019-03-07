@@ -1,0 +1,16 @@
+<h1><a href="/">Home</a></h1><br>
+
+<h2>Войдите, или <a href="/registration">зарегистрируйтесь</a></h2><br>
+
+{{#if errorMessage}}
+<p style="color:red">{{errorMessage}}</p>
+{{/if}}
+
+<form action="/login" method="post">
+  <label for="">Ваш логин:</label><br>
+  <input id="login" type="text" name="login"><br>
+  <label for="password">Ваш пароль:</label><br>
+  <input id="password" type="password" name="password"><br><br>
+  <input id="firstname" type="submit" value="Войти">
+
+</form>
