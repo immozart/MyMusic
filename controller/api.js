@@ -13,12 +13,24 @@ const getIdUrl = (artist) => {
   return url;
 }
 
-const getArtistUrl = (id) => {
-  const base_url = 'https://api.discogs.com/{artist_id}/releases';
+const getArtistUrl = (artist_id) => {
+  const base_url = `https://api.discogs.com/artists/${artist_id}/releases?`;
+  const params = {
+    key: 'dxgYyWTxQlEXIhnSSKSC',
+    secret: 'rbRFjPiStApQayLcCqLMlNEPGVYuVNMc'
+  };
+  const querystring = queryString.stringify(params);
+  const url = base_url + querystring;
+  console.log(url);
+  return url;
 
 };
 
-const getAlbums = async (artist) => {
+const getAlbums = async () => {
+  const url = getArtistUrl(1704414);
+  const res = await fetch(url);
+  const json = await res.json();
+  console.log(json);
 
 
 };
@@ -28,18 +40,20 @@ const getArtistId = async (artist) => {
   const regex = new RegExp(`^${artist.toLowerCase()}.*`);
   const res = await fetch(url);
   const json = await res.json();
-  let artists = [];
-  for (let item of json.results) {
-    if (item.title.toLowerCase().match(regex) && item.type === 'artist') {
-      let artObj = {};
-      artObj.title = item.title;
-      artObj.id = item.id;
-      artists.push(artObj);
-    }
-  }
-  
-}
+  let artists = json.results.filter((item) => item.title.toLowerCase().match(regex) && item.type === 'artist');
 
-getArtistId('The Jez');
+  artists = artists.map((item) => {
+    let newItem = {title: item['title'], id: item['id']}
+    return newItem
+  });
 
-module.exports = getUrl;
+  console.log(artists)
+
+};
+
+getAlbums()
+
+
+
+
+// module.exports = getUrl;
