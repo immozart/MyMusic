@@ -1,0 +1,15 @@
+<h1><a href="/">MyMusic</a></h1><br>
+
+<h3><a href="/lk">Личный кабинет</a></h3><br>
+
+<h3>{{artist}}</h3>
+
+<ul>
+    {{#each albums}}
+        <li>{{this.title}} [{{this.year}}]</li>
+    {{/each}}
+</ul>
+
+{{#if userName}}
+    <h3><a href="/logout">Выход</a></h3>
+{{/if}}

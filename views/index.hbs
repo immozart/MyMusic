@@ -2,7 +2,6 @@
 
 {{#if userName}}
     <h3><a href="/lk">Личный кабинет</a></h3><br>
-    <h3><a href="/logout">Выход</a></h3><br>
 {{else}}
     <h3><a href="/login">Вход</a></h3><br>
 {{/if}}
@@ -29,6 +28,10 @@
 
         {{/each}}
     </ul>
+{{/if}}
+
+{{#if userName}}
+    <h3><a href="/logout">Выход</a></h3><br>
 {{/if}}
 
 {{!-- <script src="/javascripts/main.js"></script> --}}

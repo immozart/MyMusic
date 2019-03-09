@@ -1,6 +1,23 @@
-<h1><a href="/">Home</a></h1><br>
+<h1><a href="/">MyMusic</a></h1><br>
 
 {{#if userName}}
-<h2>Добро пожаловать, <a href="/lk">{{userName}}!</a></h2><br>
-<h3><a href="/logout">Выход</a></h3>
+    <h2>Добро пожаловать, <a href="/lk">{{userName}}!</a></h2><br>
+{{/if}}
+
+{{#if artists}}
+    <h3>Мои избранные исполнители:</h3>
+    {{#each artists}}
+        <ul>
+            <li><a href="{{this.artist_id}}">{{this.artist}}</a></li>
+        </ul>
+    {{/each}}
+    {{#if duplicateError}}
+        <span style="color:red">{{duplicateError}}</span>
+    {{/if}}
+{{else}}
+    <h3>У вас нет избранных исполнителей.</h3>
+{{/if}}
+
+{{#if userName}}
+    <h3><a href="/logout">Выход</a></h3><br>
 {{/if}}

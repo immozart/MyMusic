@@ -12,7 +12,7 @@ const usersRouter = require('./routes/users');
 const app = express();
 
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/skeleton', { useNewUrlParser: true });
+mongoose.connect('mongodb://localhost:27017/mymusic', { useNewUrlParser: true });
 
 hbs.registerHelper('formatDate', function (date) {
   try {
