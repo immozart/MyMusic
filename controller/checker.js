@@ -1,7 +1,10 @@
 const artistModel = require("../models/artists");
 const sendMail = require('node-email-sender');
 const mongoose = require('mongoose');
+
 const fs = require('fs');
+const passwords = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
+
 
 // mongoose.connect('mongodb://localhost:27017/mymusic', {useNewUrlParser: true});
 
@@ -31,14 +34,13 @@ const getCompare = async () => {
 };
 
 const sendEmail = () => {
-  const emailPassword = fs.readFileSync('.config', 'utf-8');
   let emailConfig = {
     emailFrom: 'vadimpostoffice@mail.ru',
     transporterConfig: {
       service: 'mail.ru',
       auth: {
         user: 'vadimpostoffice@mail.ru',
-        pass: emailPassword
+        pass: passwords.email
       }
     }
   };
@@ -53,6 +55,6 @@ const sendEmail = () => {
   console.log(response);
 };
 
-sendEmail();
+// sendEmail();
 
 // setInterval(() => {console.log(1000)}, 5000);

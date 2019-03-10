@@ -37,22 +37,41 @@ router.post('/', async (req, res) => {
     res.render('index', {message: 'Ничего не найдено!', userName})
   } else if (artists.length === 1) {
     const artistId = artists[0].id;
-    const artistUrl = getArtistUrl(artistId);
+
+    const artistUrl = getArtistUrl(artistId, 1);
     const albumsResult = await fetch(artistUrl);
     const albumsJson = await albumsResult.json();
-    let albums = albumsJson.releases.filter((item) => item.artist.toLowerCase() === artist.toLowerCase()
+    const pagesNumber = albumsJson.pagination["pages"];
+    let finalAlbums = albumsJson.releases.filter((item) => item.artist.toLowerCase() === artist.toLowerCase()
       && item.type === 'master');
-    albums = albums.map((item) => {
+    finalAlbums = finalAlbums.map((item) => {
       return {title: item.title, year: item.year}
     });
-    if (albums.length === 0) {
+    if (pagesNumber > 1) {
+      for (let page = 2; page <= pagesNumber; page++) {
+        const artistUrl = getArtistUrl(artistId, page);
+        const albumsResult = await fetch(artistUrl);
+        const albumsJson = await albumsResult.json();
+        let albums = albumsJson.releases.filter((item) => item.artist.toLowerCase() === artist.toLowerCase()
+          && item.type === 'master');
+        albums = albums.map((item) => {
+          return {title: item.title, year: item.year}
+        });
+        if (albums.length === 0) {
+          break
+        }
+        finalAlbums = finalAlbums.concat(albums);
+      }
+    }
+
+    if (finalAlbums.length === 0) {
       res.render('index', {
         artists, albumMessage: 'Альбомы по этому исполнителю не найдены.', userName
       })
 
     } else {
-      req.session.artist = {artist: artist, artist_id: artistId, albums: albums};
-      res.render('index', {artists, albums, userName})
+      req.session.artist = {artist: artist, artist_id: artistId, albums: finalAlbums};
+      res.render('index', {artists, finalAlbums, userName})
     }
   } else {
     res.render('index', {artists, userName})
@@ -154,7 +173,7 @@ router.post('/login', async (req, res, next) => {
 });
 
 router.post('/registration', (req, res, next) => {
-  bcrypt.hash(req.body.password, saltRounds, async(err, hash) => {
+  bcrypt.hash(req.body.password, saltRounds, async (err, hash) => {
     let newUser = new authModel({
       login: req.body.login,
       email: req.body.email,

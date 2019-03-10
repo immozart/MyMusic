@@ -20,12 +20,13 @@
             {{#if ../albumMessage}}
                 <span style="color:red">{{../albumMessage}}</span>
             {{else}}
-                {{#each ../albums}}
-                    <li>{{this.title}} [{{this.year}}]</li>
-                {{/each}}
-                <br><strong><a href="/add">Добавить в избранное</a></strong>
+                {{#if ../finalAlbums}}
+                    {{#each ../finalAlbums}}
+                        <li>{{this.title}} [{{this.year}}]</li>
+                    {{/each}}
+                    <br><strong><a href="/add">Добавить в избранное</a></strong>
+                {{/if}}
             {{/if}}
-
         {{/each}}
     </ul>
 {{/if}}
