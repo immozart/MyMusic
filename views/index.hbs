@@ -1,4 +1,4 @@
-<h1><a href="/">MyMusic</a></h1><br>
+<h1><a href="/">isMusic</a></h1><br>
 
 {{#if userName}}
     <h3><a href="/lk">Личный кабинет</a></h3><br>
@@ -20,12 +20,13 @@
             {{#if ../albumMessage}}
                 <span style="color:red">{{../albumMessage}}</span>
             {{else}}
-                {{#each ../albums}}
-                    <li>{{this.title}} [{{this.year}}]</li>
-                {{/each}}
-                <br><strong><a href="/add">Добавить в избранное</a></strong>
+                {{#if ../finalAlbums}}
+                    {{#each ../finalAlbums}}
+                        <li>{{this.title}} [{{this.year}}]</li>
+                    {{/each}}
+                    <br><strong><a href="/add">Добавить в избранное</a></strong>
+                {{/if}}
             {{/if}}
-
         {{/each}}
     </ul>
 {{/if}}
@@ -33,5 +34,3 @@
 {{#if userName}}
     <h3><a href="/logout">Выход</a></h3><br>
 {{/if}}
-
-{{!-- <script src="/javascripts/main.js"></script> --}}
