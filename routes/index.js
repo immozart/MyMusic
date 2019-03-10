@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
   const userName = req.session.user ? req.session.user.firstName : '';
   let artist = toCapitalize(req.body.artist);
   const idUrl = getIdUrl(artist);
-  const regex = new RegExp(`^${artist.toLowerCase()}.*`);
+  const regex = new RegExp(`^${artist.toLowerCase()}$`);
   const idResult = await fetch(idUrl);
   const idJson = await idResult.json();
 
