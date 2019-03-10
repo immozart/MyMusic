@@ -8,7 +8,7 @@
     <h3>Мои избранные исполнители:</h3>
     {{#each artists}}
         <ul>
-            <li><a href="{{this.artist_id}}">{{this.artist}}</a></li>
+            <li><a href="/lk/{{this.artist_id}}">{{this.artist}}</a></li>
         </ul>
     {{/each}}
     {{#if duplicateError}}

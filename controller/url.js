@@ -1,9 +1,5 @@
 const fetch = require("node-fetch");
 const queryString = require("querystring");
-const artistModel = require("../models/artists");
-
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/mymusic', {useNewUrlParser: true});
 
 const getIdUrl = (artist) => {
   const base_url = 'https://api.discogs.com/database/search?';
@@ -51,31 +47,6 @@ const getArtistId = async (artist) => {
   });
 };
 
-const getCompare = async () => {
-  let artists = await artistModel.find({login: 'immozart'});
-  artists = artists.map((item) => {
-    return {artist: item.artist, artist_id: item.artist_id, albums: item.albums}
-  });
 
-  artists.forEach(async (info) => {
-    const url = getArtistUrl(info.artist_id);
-    const res = await fetch(url);
-    const json = await res.json();
-    let albums = json.releases.filter((item) => item.artist.toLowerCase() === info.artist.toLowerCase()
-      && item.type === 'master');
-    albums = albums.map((item) => {
-      return {title: item.title, year: item.year}
-    });
-    if (albums.length > info.albums.length) {
-      console.log('У исполнителя вышел новый альбом.')
-    } else {
-      console.log('У исполнителя нет новых альбомов.')
-    }
-  });
-
-  await mongoose.connection.close()
-};
-
-getCompare();
 
 module.exports = {getIdUrl, getArtistUrl};

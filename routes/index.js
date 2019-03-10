@@ -5,6 +5,8 @@ const artistModel = require("../models/artists");
 const fetch = require("node-fetch");
 const Url = require("../controller/url");
 const getIdUrl = Url.getIdUrl, getArtistUrl = Url.getArtistUrl;
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 
 router.get('/', async (req, res, next) => {
@@ -27,7 +29,6 @@ router.post('/', async (req, res) => {
     (item.title.toLowerCase() === artist.toLowerCase()
       || item.title.toLowerCase().match(regex)) && item.type === 'artist'
   );
-  console.log(artists);
   artists = artists.map((item) => {
     return {title: item['title'], id: item['id']}
   });
@@ -68,7 +69,6 @@ router.get('/add', async (req, res) => {
     });
 
     await newArtist.save((error) => {
-      console.log(error);
       if (error) {
         res.redirect('/lk')
       } else {
@@ -83,7 +83,6 @@ router.get('/add', async (req, res) => {
 
 router.get('/lk', async (req, res) => {
   if (req.session.user) {
-    console.log('artist is', req.session.artist);
     if (req.session.artist) {
       let newArtist = new artistModel({
         login: req.session.user.login,
@@ -143,54 +142,60 @@ router.post('/login', async (req, res, next) => {
   if (userInfo.length === 0) {
     res.render('login', {errorMessage: 'Такого пользователя в системе не существует.'});
   } else {
-    if (userInfo[0].password === password) {
-      req.session.user = userInfo[0];
-      res.redirect('/lk');
-    } else {
-      res.render('login', {errorMessage: 'Вы ввели неправильный пароль.'});
-    }
+    bcrypt.compare(password, userInfo[0].password, (err, result) => {
+      if (result === true) {
+        req.session.user = userInfo[0];
+        res.redirect('/lk');
+      } else {
+        res.render('login', {errorMessage: 'Вы ввели неправильный пароль.'});
+      }
+    });
   }
 });
 
-router.post('/registration', async (req, res, next) => {
-  let newUser = new authModel({
-    login: req.body.login,
-    password: req.body.password,
-    email: req.body.email,
-    firstName: req.body.firstname,
-    lastName: req.body.lastname
-  });
-  await newUser.save((error) => {
-    if (error) {
-      if (error.code === 11000) {
-        res.render('auth',
-          {errorMessage: "Пользователь с таким логином уже существует в системе."});
-      }
-      let errorMessages = [];
-      const regWords = {
-        'login': 'Логин', 'firstName': 'Имя', 'lastName': 'Фамилия',
-        'email': 'E-Mail', 'password': 'Пароль'
-      };
-      if (error.errors) {
-        for (let err in error.errors) {
-          errorMessages.push(err);
+router.post('/registration', (req, res, next) => {
+  bcrypt.hash(req.body.password, saltRounds, async(err, hash) => {
+    let newUser = new authModel({
+      login: req.body.login,
+      email: req.body.email,
+      firstName: req.body.firstname,
+      lastName: req.body.lastname,
+      password: hash
+    });
+
+    await newUser.save((error) => {
+      if (error) {
+        if (error.code === 11000) {
+          res.render('auth',
+            {errorMessage: "Пользователь с таким логином уже существует в системе."});
         }
+        let errorMessages = [];
+        const regWords = {
+          'login': 'Логин', 'firstName': 'Имя', 'lastName': 'Фамилия',
+          'email': 'E-Mail', 'password': 'Пароль'
+        };
+        if (error.errors) {
+          for (let err in error.errors) {
+            errorMessages.push(err);
+          }
+        }
+        if (errorMessages.length === 1) {
+          res.render('auth', {errorMessage: `Поле ${regWords[errorMessages[0]]} не может быть пустым.`});
+        } else if (errorMessages.length > 1) {
+          res.render('auth', {errorMessage: 'Каждое поле должно быть заполнено.'});
+        }
+      } else {
+        req.session.user = newUser;
+        res.redirect('/lk');
       }
-      if (errorMessages.length === 1) {
-        res.render('auth', {errorMessage: `Поле ${regWords[errorMessages[0]]} не может быть пустым.`});
-      } else if (errorMessages.length > 1) {
-        res.render('auth', {errorMessage: 'Каждое поле должно быть заполнено.'});
-      }
-    } else {
-      req.session.user = newUser;
-      res.redirect('/lk');
-    }
+    });
   });
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/lk/:id', async (req, res) => {
   if (req.session.user) {
     const artists = await artistModel.find({artist_id: req.params.id});
+    console.log('artists is', artists);
     res.render('artist', {artist: artists[0].artist, albums: artists[0].albums, userName: req.session.user.firstName})
   } else {
     res.redirect('/')
