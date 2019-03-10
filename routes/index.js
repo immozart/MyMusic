@@ -83,31 +83,22 @@ router.post('/', async (req, res) => {
 
 router.get('/add', async (req, res) => {
   if (req.session.user) {
+    req.session.add = true;
     res.redirect('/lk')
-    //
-    //
-    // if (count.length === 0) {
-    //   let newArtist = new artistModel({
-    //     email: req.session.user.email,
-    //     artist: req.session.artist.artist,
-    //     artist_id: req.session.artist.artist_id,
-    //     albums: req.session.artist.albums
-    //   });
-    //   await newArtist.save();
-    //
-    // }
-    // else {
-    //   req.session.artist = undefined;
-    //   res.redirect('/lk')
-    // }
   } else {
     res.redirect('/login')
   }
 });
 
+router.get('/delete/:id', async (req, res) => {
+  await artistModel.findOneAndDelete({
+    email: req.session.user.email, artist_id: req.params.id});
+  res.redirect('/lk');
+});
+
 router.get('/lk', async (req, res) => {
   if (req.session.user) {
-    if (req.session.artist) {
+    if (req.session.add) {
       let count = await artistModel.find({email: req.session.user.email, artist_id: req.session.artist.artist_id});
       if (count.length === 0) {
         let newArtist = new artistModel({
@@ -117,11 +108,13 @@ router.get('/lk', async (req, res) => {
           albums: req.session.artist.albums
         });
         await newArtist.save();
+        req.session.add = undefined;
         const artists = await artistModel.find({email: req.session.user.email});
         res.render('lk', {artists, userName: req.session.user.firstName})
       } else {
         const artist = req.session.artist.artist;
         req.session.artist = undefined;
+        req.session.add = undefined;
         const artists = await artistModel.find({email: req.session.user.email});
         res.render('lk', {
           artists, userName: req.session.user.firstName,

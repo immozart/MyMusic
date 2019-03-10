@@ -5,10 +5,14 @@
 {{/if}}
 
 {{#if artists}}
-    <h3>Мои избранные исполнители:</h3>
+    <form action="/lk" method="post">
+        <input id="firstname" type="submit" value="Проверить обновления">
+    </form><br>
+    <h4>Мои избранные исполнители:</h4><br>
     {{#each artists}}
         <ul>
             <li><a href="/lk/{{this.artist_id}}">{{this.artist}}</a></li>
+            <a href="/delete/{{this.artist_id}}">Удалить</a>
         </ul>
     {{/each}}
     {{#if duplicateError}}
