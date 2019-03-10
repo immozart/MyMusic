@@ -1,4 +1,4 @@
-<h1><a href="/">MyMusic</a></h1><br>
+<h1><a href="/">isMusic</a></h1><br>
 
 {{#if userName}}
     <h2>Добро пожаловать, <a href="/lk">{{userName}}!</a></h2><br>
@@ -12,12 +12,12 @@
         </ul>
     {{/each}}
     {{#if duplicateError}}
-        <span style="color:red">{{duplicateError}}</span>
+        <span style="color:red">{{duplicateError}}</span><br>
     {{/if}}
 {{else}}
     <h3>У вас нет избранных исполнителей.</h3>
 {{/if}}
 
 {{#if userName}}
-    <h3><a href="/logout">Выход</a></h3><br>
+    <br><h3><a href="/logout">Выход</a></h3><br>
 {{/if}}

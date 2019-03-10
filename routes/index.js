@@ -5,6 +5,7 @@ const artistModel = require("../models/artists");
 const fetch = require("node-fetch");
 const Url = require("../controller/url");
 const getIdUrl = Url.getIdUrl, getArtistUrl = Url.getArtistUrl;
+const toCapitalize = require("../controller/methods");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
@@ -19,7 +20,7 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res) => {
   const userName = req.session.user ? req.session.user.firstName : '';
-  let artist = req.body.artist;
+  let artist = toCapitalize(req.body.artist);
   const idUrl = getIdUrl(artist);
   const regex = new RegExp(`^${artist.toLowerCase()}.*`);
   const idResult = await fetch(idUrl);
@@ -78,23 +79,27 @@ router.post('/', async (req, res) => {
   }
 });
 
+// let count = await artistModel.find({email: req.session.user.email, artist_id: req.session.artist.artist_id});
+
 router.get('/add', async (req, res) => {
   if (req.session.user) {
-    let newArtist = new artistModel({
-      login: req.session.user.login,
-      artist: req.session.artist.artist,
-      artist_id: req.session.artist.artist_id,
-      albums: req.session.artist.albums
-    });
-
-    await newArtist.save((error) => {
-      if (error) {
-        res.redirect('/lk')
-      } else {
-        req.session.artist = undefined;
-        res.redirect('/lk')
-      }
-    });
+    res.redirect('/lk')
+    //
+    //
+    // if (count.length === 0) {
+    //   let newArtist = new artistModel({
+    //     email: req.session.user.email,
+    //     artist: req.session.artist.artist,
+    //     artist_id: req.session.artist.artist_id,
+    //     albums: req.session.artist.albums
+    //   });
+    //   await newArtist.save();
+    //
+    // }
+    // else {
+    //   req.session.artist = undefined;
+    //   res.redirect('/lk')
+    // }
   } else {
     res.redirect('/login')
   }
@@ -103,28 +108,28 @@ router.get('/add', async (req, res) => {
 router.get('/lk', async (req, res) => {
   if (req.session.user) {
     if (req.session.artist) {
-      let newArtist = new artistModel({
-        login: req.session.user.login,
-        artist: req.session.artist.artist,
-        artist_id: req.session.artist.artist_id,
-        albums: req.session.artist.albums
-      });
-
-      await newArtist.save(async (error) => {
+      let count = await artistModel.find({email: req.session.user.email, artist_id: req.session.artist.artist_id});
+      if (count.length === 0) {
+        let newArtist = new artistModel({
+          email: req.session.user.email,
+          artist: req.session.artist.artist,
+          artist_id: req.session.artist.artist_id,
+          albums: req.session.artist.albums
+        });
+        await newArtist.save();
+        const artists = await artistModel.find({email: req.session.user.email});
+        res.render('lk', {artists, userName: req.session.user.firstName})
+      } else {
         const artist = req.session.artist.artist;
         req.session.artist = undefined;
-        const artists = await artistModel.find({login: req.session.user.login});
-        if (error) {
-          res.render('lk', {
-            artists, userName: req.session.user.firstName,
-            duplicateError: `Исполнитель ${artist} уже добавлен в избранное.`
-          });
-        } else {
-          res.render('lk', {artists, userName: req.session.user.firstName})
-        }
-      });
+        const artists = await artistModel.find({email: req.session.user.email});
+        res.render('lk', {
+          artists, userName: req.session.user.firstName,
+          duplicateError: `Исполнитель ${artist} уже добавлен в избранное.`
+        });
+      }
     } else {
-      const artists = await artistModel.find({login: req.session.user.login});
+      const artists = await artistModel.find({email: req.session.user.email});
       res.render('lk', {artists, userName: req.session.user.firstName})
     }
   } else {
@@ -214,7 +219,6 @@ router.post('/registration', (req, res, next) => {
 router.get('/lk/:id', async (req, res) => {
   if (req.session.user) {
     const artists = await artistModel.find({artist_id: req.params.id});
-    console.log('artists is', artists);
     res.render('artist', {artist: artists[0].artist, albums: artists[0].albums, userName: req.session.user.firstName})
   } else {
     res.redirect('/')

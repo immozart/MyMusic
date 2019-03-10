@@ -1,4 +1,3 @@
-const fetch = require("node-fetch");
 const queryString = require("querystring");
 
 const fs = require('fs');

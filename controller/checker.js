@@ -1,39 +1,15 @@
+const fetch = require("node-fetch");
 const artistModel = require("../models/artists");
 const sendMail = require('node-email-sender');
-const mongoose = require('mongoose');
+const getArtistUrl = require("../controller/url").getArtistUrl;
 
 const fs = require('fs');
 const passwords = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
 
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost:27017/mymusic', {useNewUrlParser: true});
 
-// mongoose.connect('mongodb://localhost:27017/mymusic', {useNewUrlParser: true});
-
-const getCompare = async () => {
-  let artists = await artistModel.find({login: 'immozart'});
-  artists = artists.map((item) => {
-    return {artist: item.artist, artist_id: item.artist_id, albums: item.albums}
-  });
-
-  artists.forEach(async (info) => {
-    const url = getArtistUrl(info.artist_id);
-    const res = await fetch(url);
-    const json = await res.json();
-    let albums = json.releases.filter((item) => item.artist.toLowerCase() === info.artist.toLowerCase()
-      && item.type === 'master');
-    albums = albums.map((item) => {
-      return {title: item.title, year: item.year}
-    });
-    if (albums.length > info.albums.length) {
-      console.log('У исполнителя вышел новый альбом.')
-    } else {
-      console.log('У исполнителя нет новых альбомов.')
-    }
-  });
-
-  await mongoose.connection.close()
-};
-
-const sendEmail = () => {
+const sendEmail = (artist, lastAlbum) => {
   let emailConfig = {
     emailFrom: 'vadimpostoffice@mail.ru',
     transporterConfig: {
@@ -45,16 +21,69 @@ const sendEmail = () => {
     }
   };
 
-  const response = sendMail.sendMail({
+  sendMail.sendMail({
     emailConfig: emailConfig,
     to: 'vadimpostoffice@mail.ru',
-    subject: 'Sample subject',
-    content: 'Sample content',
+    subject: 'Ура! Вышел новый альбом!',
+    content: `Отличная новость! ${artist} выпустили новый альбом - ${lastAlbum}!`
   });
-
-  console.log(response);
 };
 
-// sendEmail();
+const checker = async () => {
+  let artists = await artistModel.find();
+  artists = artists.map(item => {
+    return {
+      artist: item.artist,
+      artistId: item.artist_id,
+      albumsNumber: item.albums.length,
+      email: item.email
+    }
+  });
 
-// setInterval(() => {console.log(1000)}, 5000);
+  artists.forEach(async (item) => {
+    let artist = item.artist;
+    let artistId = item.artistId;
+    let albumsNumber = item.albumsNumber;
+    let email = item.email;
+
+    const artistUrl = getArtistUrl(artistId, 1);
+    const albumsResult = await fetch(artistUrl);
+    const albumsJson = await albumsResult.json();
+    const pagesNumber = albumsJson.pagination["pages"];
+    let finalAlbums = albumsJson.releases.filter((item) => item.artist.toLowerCase() === artist.toLowerCase()
+      && item.type === 'master');
+    finalAlbums = finalAlbums.map((item) => {
+      return {title: item.title, year: item.year}
+    });
+    if (pagesNumber > 1) {
+      for (let page = 2; page <= pagesNumber; page++) {
+        const artistUrl = getArtistUrl(artistId, page);
+        const albumsResult = await fetch(artistUrl);
+        const albumsJson = await albumsResult.json();
+        let albums = albumsJson.releases.filter((item) => item.artist.toLowerCase() === artist.toLowerCase()
+          && item.type === 'master');
+        albums = albums.map((item) => {
+          return {title: item.title, year: item.year}
+        });
+        if (albums.length === 0) {
+          break
+        }
+        finalAlbums = finalAlbums.concat(albums);
+      }
+    }
+
+    const lastAlbum = finalAlbums[albumsNumber - 1].title;
+
+    if (finalAlbums.length > albumsNumber) {
+      console.log('Вышел новый альбом!')
+    } else {
+      sendEmail(artist, lastAlbum);
+      console.log('Нет нового альбома!')
+    }
+  });
+
+  await mongoose.connection.close();
+};
+
+
+module.exports = checker;
