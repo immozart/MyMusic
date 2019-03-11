@@ -3,8 +3,8 @@ const artistModel = require("../models/artists");
 const sendMail = require('node-email-sender');
 const getArtistUrl = require("../controller/url").getArtistUrl;
 
-const fs = require('fs');
-const passwords = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
+// const fs = require('fs');
+// const passwords = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/mymusic', {useNewUrlParser: true});
@@ -16,7 +16,7 @@ const sendEmail = (artist, lastAlbum) => {
       service: 'mail.ru',
       auth: {
         user: 'vadimpostoffice@mail.ru',
-        pass: passwords.email
+        pass: process.env.email_config
       }
     }
   };
