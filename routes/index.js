@@ -8,7 +8,7 @@ const getIdUrl = Url.getIdUrl, getArtistUrl = Url.getArtistUrl;
 const toCapitalize = require("../controller/methods");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-
+const checkAll = require("../controller/checker");
 
 router.get('/', async (req, res, next) => {
   if (req.session.user) {
@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
   const userName = req.session.user ? req.session.user.firstName : '';
   let artist = toCapitalize(req.body.artist);
   const idUrl = getIdUrl(artist);
-  const regex = new RegExp(`^${artist.toLowerCase()}.*`);
+  const regex = new RegExp(`^${artist.toLowerCase()}$`);
   const idResult = await fetch(idUrl);
   const idJson = await idResult.json();
 
@@ -71,7 +71,7 @@ router.post('/', async (req, res) => {
       })
 
     } else {
-      req.session.artist = {artist: artist, artist_id: artistId, albums: finalAlbums};
+      req.session.artist = {artist: artist, artistId: artistId, albums: finalAlbums};
       res.render('index', {artists, finalAlbums, userName})
     }
   } else {
@@ -79,49 +79,41 @@ router.post('/', async (req, res) => {
   }
 });
 
-// let count = await artistModel.find({email: req.session.user.email, artist_id: req.session.artist.artist_id});
-
 router.get('/add', async (req, res) => {
+  req.session.add = true;
   if (req.session.user) {
     res.redirect('/lk')
-    //
-    //
-    // if (count.length === 0) {
-    //   let newArtist = new artistModel({
-    //     email: req.session.user.email,
-    //     artist: req.session.artist.artist,
-    //     artist_id: req.session.artist.artist_id,
-    //     albums: req.session.artist.albums
-    //   });
-    //   await newArtist.save();
-    //
-    // }
-    // else {
-    //   req.session.artist = undefined;
-    //   res.redirect('/lk')
-    // }
   } else {
     res.redirect('/login')
   }
 });
 
+router.get('/delete/:id', async (req, res) => {
+  await artistModel.findOneAndDelete({
+    email: req.session.user.email, artistId: req.params.id
+  });
+  res.redirect('/lk');
+});
+
 router.get('/lk', async (req, res) => {
   if (req.session.user) {
-    if (req.session.artist) {
-      let count = await artistModel.find({email: req.session.user.email, artist_id: req.session.artist.artist_id});
+    if (req.session.add) {
+      let count = await artistModel.find({email: req.session.user.email, artistId: req.session.artist.artistId});
       if (count.length === 0) {
         let newArtist = new artistModel({
           email: req.session.user.email,
           artist: req.session.artist.artist,
-          artist_id: req.session.artist.artist_id,
+          artistId: req.session.artist.artistId,
           albums: req.session.artist.albums
         });
         await newArtist.save();
+        req.session.add = undefined;
         const artists = await artistModel.find({email: req.session.user.email});
         res.render('lk', {artists, userName: req.session.user.firstName})
       } else {
         const artist = req.session.artist.artist;
         req.session.artist = undefined;
+        req.session.add = undefined;
         const artists = await artistModel.find({email: req.session.user.email});
         res.render('lk', {
           artists, userName: req.session.user.firstName,
@@ -135,6 +127,65 @@ router.get('/lk', async (req, res) => {
   } else {
     res.redirect('/login')
   }
+});
+
+router.post('/lk', async (req, res) => {
+  if (req.session.user) {
+
+    let artists = await artistModel.find({email: req.session.user.email});
+    artists = artists.map(item => {
+      return {artistId: item.artistId, artist: item.artist, albumsNumber: item.albums.length}
+    });
+
+    let checkMessages = [];
+
+    for (let item of artists) {
+      let artist = item.artist;
+      let artistId = item.artistId;
+      let albumsNumber = item.albumsNumber;
+
+      const artistUrl = getArtistUrl(artistId, 1);
+      const albumsResult = await fetch(artistUrl);
+      const albumsJson = await albumsResult.json();
+      const pagesNumber = albumsJson.pagination["pages"];
+      let finalAlbums = albumsJson.releases.filter((item) => item.artist.toLowerCase() === artist.toLowerCase()
+        && item.type === 'master');
+      finalAlbums = finalAlbums.map((item) => {
+        return {title: item.title, year: item.year}
+      });
+      if (pagesNumber > 1) {
+        for (let page = 2; page <= pagesNumber; page++) {
+          const artistUrl = getArtistUrl(artistId, page);
+          const albumsResult = await fetch(artistUrl);
+          const albumsJson = await albumsResult.json();
+          let albums = albumsJson.releases.filter((item) => item.artist.toLowerCase() === artist.toLowerCase()
+            && item.type === 'master');
+          albums = albums.map((item) => {
+            return {title: item.title, year: item.year}
+          });
+          if (albums.length === 0) {
+            break
+          }
+          finalAlbums = finalAlbums.concat(albums);
+        }
+      }
+
+      const lastAlbum = finalAlbums[albumsNumber - 1].title;
+
+      if (finalAlbums.length > albumsNumber) {
+        checkMessages.push(`У ${artist} вышел новый альбом - ${lastAlbum}!\n`)
+      }
+    }
+
+    if (checkMessages.length === 0) {
+      checkMessages = ['Новых альбомов нет!'];
+    }
+
+    res.render('lk', {artists, userName: req.session.user.firstName, checkMessages})
+  } else {
+    res.redirect('/')
+  }
+
 });
 
 router.get('/logout', (req, res) => {
@@ -218,7 +269,7 @@ router.post('/registration', (req, res, next) => {
 
 router.get('/lk/:id', async (req, res) => {
   if (req.session.user) {
-    const artists = await artistModel.find({artist_id: req.params.id});
+    const artists = await artistModel.find({artistId: req.params.id});
     res.render('artist', {artist: artists[0].artist, albums: artists[0].albums, userName: req.session.user.firstName})
   } else {
     res.redirect('/')
