@@ -12,7 +12,7 @@ const usersRouter = require('./routes/users');
 const app = express();
 
 const mongoose = require('mongoose');
-mongoose.connect('mongodb+srv://immozart:999!!!lamprolo@cluster0-dqtpq.mongodb.net/test?retryWrites=true'', { useNewUrlParser: true });
+mongoose.connect(`mongodb+srv://immozart:${process.env.password_config}@mycl-7m8wi.mongodb.net/test?retryWrites=true`, { useNewUrlParser: true });
 
 hbs.registerHelper('formatDate', function (date) {
   try {
