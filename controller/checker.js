@@ -30,11 +30,13 @@ const sendEmail = (artist, lastAlbum) => {
 };
 
 const checkAll = async () => {
+  console.log('WORKS');
+  
   let artists = await artistModel.find();
   artists = artists.map(item => {
     return {
       artist: item.artist,
-      artistId: item.artist_id,
+      artistId: item.artistId,
       albumsNumber: item.albums.length,
       email: item.email
     }
@@ -50,8 +52,10 @@ const checkAll = async () => {
     const albumsResult = await fetch(artistUrl);
     const albumsJson = await albumsResult.json();
     const pagesNumber = albumsJson.pagination["pages"];
-    let finalAlbums = albumsJson.releases.filter((item) => item.artist.toLowerCase() === artist.toLowerCase()
-      && item.type === 'master');
+    let finalAlbums = albumsJson.releases.filter(
+      item => item.artist.toLowerCase() === artist.toLowerCase() && 
+      item.type === 'master'
+    );
     finalAlbums = finalAlbums.map((item) => {
       return {title: item.title, year: item.year}
     });
@@ -75,19 +79,19 @@ const checkAll = async () => {
     const lastAlbum = finalAlbums[albumsNumber - 1].title;
 
     if (finalAlbums.length > albumsNumber) {
+      sendEmail(artist, lastAlbum);
       console.log('Вышел новый альбом!')
     } else {
-      sendEmail(artist, lastAlbum);
       console.log('Нет нового альбома!')
     }
   });
 
-  await mongoose.connection.close();
+  // await mongoose.connection.close();
 };
 
 const checkOne = async (email) => {
   let artists = await artistModel.find({email: email});
-  artists = artists.map(item => {return {artistId: item.artist_id, artist: item.artist, albumsNumber: item.albums.length}});
+  artists = artists.map(item => {return {artistId: item.artistId, artist: item.artist, albumsNumber: item.albums.length}});
 
   artists.forEach(async (item) => {
     let artist = item.artist;
@@ -131,6 +135,9 @@ const checkOne = async (email) => {
   await mongoose.connection.close();
 };
 
-checkOne('vadimpostoffice@mail.ru')
 
-// module.exports = checker;
+setInterval(() => checkAll(), 86400000)
+
+// checkAll()
+
+module.exports = checkAll;

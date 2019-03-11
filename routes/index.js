@@ -8,7 +8,7 @@ const getIdUrl = Url.getIdUrl, getArtistUrl = Url.getArtistUrl;
 const toCapitalize = require("../controller/methods");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-
+const checkAll = require("../controller/checker");
 
 router.get('/', async (req, res, next) => {
   if (req.session.user) {
