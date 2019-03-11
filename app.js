@@ -12,7 +12,7 @@ const usersRouter = require('./routes/users');
 const app = express();
 
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/mymusic', { useNewUrlParser: true });
+mongoose.connect('mongodb+srv://immozart:999!!!lamprolo@cluster0-dqtpq.mongodb.net/test?retryWrites=true'', { useNewUrlParser: true });
 
 hbs.registerHelper('formatDate', function (date) {
   try {
