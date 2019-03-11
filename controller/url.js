@@ -1,9 +1,7 @@
 const queryString = require("querystring");
 
-process.arg
-
-const fs = require('fs');
-const passwords = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
+// const fs = require('fs');
+// const passwords = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
 
 const getIdUrl = (artist) => {
   const base_url = 'https://api.discogs.com/database/search?';
