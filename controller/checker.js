@@ -125,7 +125,6 @@ const checkOne = async (email) => {
       console.log('Нет нового альбома!')
     }
   });
-  await mongoose.connection.close();
 };
 
 setInterval(() => checkAll(), 86400000)
