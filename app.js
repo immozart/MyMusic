@@ -13,6 +13,7 @@ const app = express();
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/mymusic', { useNewUrlParser: true });
+// mongoose.connect('mongodb+srv://immozart:999!!!lamprolo@ismusic-7m8wi.mongodb.net/test?retryWrites=true', { useNewUrlParser: true })
 
 hbs.registerHelper('formatDate', function (date) {
   try {
