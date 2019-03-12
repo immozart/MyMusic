@@ -13,7 +13,7 @@ const app = express();
 
 const mongoose = require('mongoose');
 mongoose.connect(`mongodb+srv://${process.env.mongo_login}:${process.env.mongo_password}@ismusic-7m8wi.mongodb.net/test?retryWrites=true`, { useNewUrlParser: true });
-
+console.log(process.env.mongo_login, process.env.mongo_password);
 hbs.registerHelper('formatDate', function (date) {
   try {
     let day = date.getDate();
