@@ -9,7 +9,7 @@ const sendEmail = (artist, lastAlbum, email) => {
     transporterConfig: {
       service: 'mail.ru',
       auth: {
-        user: email,
+        user: process.env.email,
         pass: process.env.email_password
       }
     }
@@ -17,7 +17,7 @@ const sendEmail = (artist, lastAlbum, email) => {
 
   sendMail.sendMail({
     emailConfig: emailConfig,
-    to: 'vadimpostoffice@mail.ru',
+    to: email,
     subject: 'Ура! Вышел новый альбом!',
     content: `Отличная новость! ${artist} выпустили новый альбом - ${lastAlbum}!`
   });
@@ -35,7 +35,7 @@ const checkAll = async () => {
     }
   });
 
-  if (artist) {
+  if (artists.length === 1) {
     artists.forEach(async (item) => {
       let artist = item.artist;
       let artistId = item.artistId;
@@ -79,12 +79,8 @@ const checkAll = async () => {
         console.log('Нет нового альбома!')
       }
     });
-  } else {
-    console.log("Нет данных!")
   }
 }
-
-
 
 const checkOne = async (email) => {
   let artists = await artistModel.find({ email: email });

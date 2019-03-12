@@ -28,7 +28,6 @@ hbs.registerHelper('formatDate', function (date) {
     return `${year}-${month}-${day}`
   } catch (err) {
   }
-
 });
 
 // view engine setup
