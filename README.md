@@ -1,4 +1,4 @@
-## [MyMusic](https://ismusic.herokuapp.com) -
+### [MyMusic](https://ismusic.herokuapp.com) -
 сервис для поиска музыки и добавления подписки на выход новых альбомов избранных исполнителей.
 
 #### MVP Functionality
